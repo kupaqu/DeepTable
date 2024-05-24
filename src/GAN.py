@@ -16,16 +16,14 @@ class GAN:
         self.g.to(device)
 
     def d_forward(self, x: torch.Tensor, meta: torch.Tensor = None):
-        if meta is None: # if meta is None, it means that table is generated, so assume zeros comes before ones
-            batch_size = x.shape[0]
-            n_rows = x.shape[2]
-            y = torch.cat([torch.zeros((batch_size, n_rows//2)), torch.ones((batch_size, n_rows//2))], dim=1)
-            meta = get_batch_metafeatures(x, y).to(self._device)
+        if meta is None: # if meta is None, it means that table is generated
+            meta = get_batch_metafeatures(x).to(self._device)
 
         return self.d(x, meta)
     
     def g_forward(self, meta: torch.Tensor):
         batch_size = meta.shape[0]
+        meta = meta.view(batch_size, len(meta), 1, 1)
         z = torch.randn(batch_size, 32, 1, 1, device=self._device)
 
         return self.g(z, meta).view_as(-1, 16, 128)

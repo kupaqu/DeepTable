@@ -11,12 +11,17 @@ from utils import get_lambda_vector, get_metafeatures_vector
 # before passing it in .utils functions.
 
 def preprocess_batch(X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    if y is None: # if y is None, it means that table is generated, so assume zeros comes before ones
+        batch_size = X.shape[0]
+        n_rows = X.shape[2]
+        y = torch.cat([torch.zeros((batch_size, n_rows//2)), torch.ones((batch_size, n_rows//2))], dim=1)
+
     X = torch.permute(X, (0, 2, 1))
     X, y = X.numpy(force=True), y.numpy(force=True)
 
     return X, y
 
-def get_batch_lambda(X: torch.Tensor, y: torch.Tensor, clfs: List) -> torch.Tensor:
+def get_batch_lambda(clfs: List, X: torch.Tensor, y: torch.Tensor = None) -> torch.Tensor:
     X, y = preprocess_batch(X, y)
     batch_lambda = []
     for i in range(X.shape[0]):
@@ -24,7 +29,7 @@ def get_batch_lambda(X: torch.Tensor, y: torch.Tensor, clfs: List) -> torch.Tens
 
     return torch.Tensor(batch_lambda)
 
-def get_batch_metafeatures(X: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+def get_batch_metafeatures(X: torch.Tensor, y: torch.Tensor = None) -> torch.Tensor:
     X, y = preprocess_batch(X, y)
     batch_meta = []
     for i in range(X.shape[0]):
