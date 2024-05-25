@@ -20,7 +20,7 @@ class Trainer:
 
         n_clfs = len(clfs)
         n_metas = self._get_n_metas_from_dataset(train_dataset)
-        self.gan = GAN(len(clfs), n_clfs, n_metas)
+        self.gan = GAN(n_clfs, n_metas)
 
         self.d_opt = torch.optim.Adam(self.gan.d.parameters(), lr=lr)
         self.g_opt = torch.optim.Adam(self.gan.g.parameters(), lr=lr)
