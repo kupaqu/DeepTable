@@ -81,6 +81,8 @@ class Trainer:
         target_label = torch.ones(batch_size, 1, device=self._device)
         
         # TODO: experiment with lambda loss in generator
+        # fake_meta = get_batch_metafeatures(X, y).to(self._device)
+        # meta_loss = nn.functional.l1_loss(fake_meta, meta)
 
         loss = nn.functional.binary_cross_entropy(pred_label, target_label)
         loss.backward()
