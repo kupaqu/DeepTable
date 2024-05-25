@@ -11,7 +11,6 @@ from batch_utils import get_batch_lambda, get_batch_metafeatures
 class Trainer:
     def __init__(self, clfs: List[ClassifierMixin], data_dir: str, batch_size: int = 16, lr: int = 0.0003):
         self.clfs = clfs
-        self.batch_size = batch_size
 
         train_dataset = OpenMLDataset(clfs=clfs, data_dir=data_dir, test=False)
         test_dataset = OpenMLDataset(clfs=clfs, data_dir=data_dir, test=True)
@@ -41,9 +40,12 @@ class Trainer:
                              lambda_: torch.Tensor, meta: torch.Tensor):
         self.d_opt.zero_grad()
 
+        # getting batch_size of the current batch
+        batch_size = X.shape[0]
+
         # train on real
         pred_lambda, pred_label = self.gan.d_forward(X, meta)
-        true_label = torch.ones(self.batch_size, 1, device=self._device)
+        true_label = torch.ones(batch_size, 1, device=self._device)
 
         real_lambda_loss = nn.functional.l1_loss(pred_lambda, lambda_)
         real_label_loss = nn.functional.binary_cross_entropy(pred_label, true_label)
@@ -54,7 +56,7 @@ class Trainer:
         fake_lambda = get_batch_lambda(clfs=self.clfs, X=fake_X).to(self._device)
         
         pred_lambda, pred_label = self.gan.d_forward(fake_X)
-        fake_label = torch.zeros(self.batch_size, 1, device=self._device)
+        fake_label = torch.zeros(batch_size, 1, device=self._device)
 
         fake_lambda_loss = nn.functional.l1_loss(pred_lambda, fake_lambda)
         fake_label_loss = nn.functional.binary_cross_entropy(pred_label, fake_label)
@@ -71,9 +73,12 @@ class Trainer:
                          lambda_: torch.Tensor, meta: torch.Tensor):
         self.g_opt.zero_grad()
 
+        # getting batch_size of the current batch
+        batch_size = X.shape[0]
+
         fake_X = self.gan.g_forward(meta)
         pred_lambda_, pred_label = self.gan.d_forward(fake_X)
-        target_label = torch.ones(self.batch_size, 1, device=self._device)
+        target_label = torch.ones(batch_size, 1, device=self._device)
         
         # TODO: experiment with lambda loss in generator
 
