@@ -26,4 +26,4 @@ class GAN:
         meta = meta.view(batch_size, -1, 1, 1)
         z = torch.randn(batch_size, 32, 1, 1, device=self._device)
 
-        return self.g(z, meta).view_as(-1, 16, 128)
+        return self.g(z, meta).view(-1, 16, 128)
