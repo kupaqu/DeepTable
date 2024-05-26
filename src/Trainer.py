@@ -177,9 +177,9 @@ class Trainer:
             metrics = self._evaluate_gan(X, y, lambda_, meta)
 
             if running_metrics:
-                running_metrics = metrics
-            else:
                 running_metrics = sum_dicts([running_metrics, metrics])
+            else:
+                running_metrics = metrics
 
         evaluated_metrics = {k: v/len(dataloader) for k, v in running_metrics.items()}
 
