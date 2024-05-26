@@ -37,8 +37,8 @@ def join_dicts(dicts: List[Dict[str, float]]) -> Dict[str, float]:
     return output_dict
 
 def sum_dicts(dicts: List[Dict[str, float]]) -> Dict[str, float]:
-    output_dict = dicts[1:].copy()
-    for dict_ in dicts:
+    output_dict = dicts[0].copy()
+    for dict_ in dicts[1:]:
         for key, value in dict_.items():
             output_dict[key] += value
     
