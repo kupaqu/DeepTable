@@ -16,8 +16,14 @@ class Trainer:
 
         train_dataset = OpenMLDataset(clfs=clfs, data_dir=data_dir, test=False)
         test_dataset = OpenMLDataset(clfs=clfs, data_dir=data_dir, test=True)
+
+        train_size = int(0.67 * len(train_dataset))
+        val_size = len(train_dataset) - train_size
+        train_dataset, val_dataset = torch.utils.data.random_split(train_dataset, [train_size, val_size])
+        
         self._train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
         self._test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size)
+        self._val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size)
 
         self.n_clfs = len(clfs)
         n_metas = self._get_n_metas_from_dataset(train_dataset)
@@ -159,5 +165,28 @@ class Trainer:
 
         return epoch_metrics
     
-    def evaluate(self) -> Dict[str, float]:
+    def evaluate(self, dataloader: torch.utils.data.DataLoader) -> Dict[str, float]:
+        running_metrics = None
+
+        for X, y, lambda_, meta in dataloader:
+            X = X.to(self._device)
+            y = y.to(self._device)
+            lambda_ = lambda_.to(self._device)
+            meta = meta.to(self._device)
+
+            metrics = self._evaluate_gan(X, y, lambda_, meta)
+
+            if running_metrics:
+                running_metrics = metrics
+            else:
+                running_metrics = sum_dicts(running_metrics, metrics)
+
+        evaluated_metrics = {k: v/len(dataloader) for k, v in running_metrics.items()}
+
+        return evaluated_metrics
+    
+    def train(self, epochs: int) -> List[Dict[str, float]]:
+        ...
+    
+    def verbose(self, metrics: Dict[str, float]):
         ...
