@@ -8,6 +8,7 @@ from sklearn.base import ClassifierMixin
 from OpenMLDataset import OpenMLDataset
 from GAN import GAN
 from batch_utils import get_batch_lambda, get_batch_metafeatures
+from utils import join_dicts, sum_dicts
 
 class Trainer:
     def __init__(self, clfs: List[ClassifierMixin], data_dir: str, batch_size: int = 16, lr: int = 0.0003):
@@ -92,12 +93,13 @@ class Trainer:
         return loss.item()
 
     def _train_gan(self, X: torch.Tensor, y: torch.Tensor, \
-                         lambda_: torch.Tensor, meta: torch.Tensor) -> Tuple[float, float]:
+                         lambda_: torch.Tensor, meta: torch.Tensor) -> Dict[str, float]:
 
         d_loss = self._train_discriminator(X, y, lambda_, meta)
         g_loss = self._train_generator(X, y, lambda_, meta)
+        losses = {'Discriminator BCE loss': d_loss, 'Generator BCE loss': g_loss}
 
-        return d_loss, g_loss
+        return losses
     
     def _evaluate_discriminator(self, X: torch.Tensor, lambda_: torch.Tensor, meta: torch.Tensor):
         metrics = {}
@@ -126,15 +128,17 @@ class Trainer:
         return metrics
 
     def _evaluate_gan(self, X: torch.Tensor, y: torch.Tensor, \
-                      lambda_: torch.Tensor, meta: torch.Tensor) -> Tuple[Dict, Dict]:
+                      lambda_: torch.Tensor, meta: torch.Tensor) -> Dict[str, float]:
         
         d_metrics = self._evaluate_discriminator(X, lambda_, meta)
         g_metrics = self._evaluate_generator(meta)
+        metrics = join_dicts(d_metrics, g_metrics)
 
-        return d_metrics, g_metrics
+        return metrics
     
-    def train_epoch(self, X: torch.Tensor, y: torch.Tensor, \
-                      lambda_: torch.Tensor, meta: torch.Tensor) -> Dict[str, float]:
+    def train_epoch(self) -> Dict[str, float]:
+        
+        running_metrics = None
 
         for X, y, lambda_, meta in self._train_dataloader:
             X = X.to(self._device)
@@ -142,7 +146,18 @@ class Trainer:
             lambda_ = lambda_.to(self._device)
             meta = meta.to(self._device)
 
-            d_loss, g_loss = self._train_gan(X, y, lambda_, meta)
-            d_metrics, g_metrics = self._evaluate_gan(X, y, lambda_, meta)
+            losses = self._train_gan(X, y, lambda_, meta)
+            metrics = self._evaluate_gan(X, y, lambda_, meta)
+            metrics = join_dicts(losses, metrics)
 
-            # TODO: add accumulation of losses and metrics
+            if running_metrics:
+                running_metrics = metrics
+            else:
+                running_metrics = sum_dicts(running_metrics, metrics)
+
+        epoch_metrics = {k: v/len(self._train_dataloader) for k, v in running_metrics.items()}
+
+        return epoch_metrics
+    
+    def evaluate(self) -> Dict[str, float]:
+        ...

@@ -1,5 +1,6 @@
 import numpy as np
 
+from typing import Dict, List
 from pymfe.mfe import MFE
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
@@ -27,3 +28,18 @@ def get_lambda_vector(X: np.ndarray, y: np.ndarray, clfs: list) -> np.ndarray:
     lambda_vector = np.exp(scores)/sum(np.exp(scores)) # softmax
 
     return lambda_vector
+
+def join_dicts(dicts: List[Dict[str, float]]) -> Dict[str, float]:
+    output_dict = {}
+    for dict_ in dicts:
+        output_dict.update(dict_)
+
+    return output_dict
+
+def sum_dicts(dicts: List[Dict[str, float]]) -> Dict[str, float]:
+    output_dict = dicts[1:].copy()
+    for dict_ in dicts:
+        for key, value in dict_.items():
+            output_dict[key] += value
+    
+    return output_dict
