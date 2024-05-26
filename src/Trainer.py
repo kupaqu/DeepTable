@@ -157,9 +157,9 @@ class Trainer:
             metrics = join_dicts([losses, metrics])
 
             if running_metrics:
-                running_metrics = metrics
-            else:
                 running_metrics = sum_dicts([running_metrics, metrics])
+            else:
+                running_metrics = metrics
 
         epoch_metrics = {k: v/len(self._train_dataloader) for k, v in running_metrics.items()}
 
