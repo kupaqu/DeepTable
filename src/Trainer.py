@@ -1,7 +1,8 @@
 import torch
 
-from torch import nn
-from typing import List
+from torch.nn.functional import l1_loss, mse_loss, binary_cross_entropy
+from torcheval.metrics.functional import multiclass_f1_score, multiclass_accuracy
+from typing import List, Tuple, Dict
 from sklearn.base import ClassifierMixin
 
 from OpenMLDataset import OpenMLDataset
@@ -17,16 +18,16 @@ class Trainer:
         self._train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
         self._test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size)
 
-        n_clfs = len(clfs)
+        self.n_clfs = len(clfs)
         n_metas = self._get_n_metas_from_dataset(train_dataset)
-        self.gan = GAN(n_clfs, n_metas)
+        self.gan = GAN(self.n_clfs, n_metas)
 
         self.d_opt = torch.optim.Adam(self.gan.d.parameters(), lr=lr)
         self.g_opt = torch.optim.Adam(self.gan.g.parameters(), lr=lr)
 
         self._device = 'cpu'
     
-    def _get_n_metas_from_dataset(self, dataset: torch.utils.data.Dataset):
+    def _get_n_metas_from_dataset(self, dataset: torch.utils.data.Dataset) -> int:
         _, _, _, meta = dataset[0]
         n_metas = meta.shape[0]
 
@@ -37,7 +38,7 @@ class Trainer:
         self.gan.to(device)
 
     def _train_discriminator(self, X: torch.Tensor, y: torch.Tensor, \
-                             lambda_: torch.Tensor, meta: torch.Tensor):
+                             lambda_: torch.Tensor, meta: torch.Tensor) -> float:
         self.d_opt.zero_grad()
 
         # getting batch_size of the current batch
@@ -47,8 +48,8 @@ class Trainer:
         pred_lambda, pred_label = self.gan.d_forward(X, meta)
         true_label = torch.ones(batch_size, 1, device=self._device)
 
-        real_lambda_loss = nn.functional.l1_loss(pred_lambda, lambda_)
-        real_label_loss = nn.functional.binary_cross_entropy(pred_label, true_label)
+        real_lambda_loss = l1_loss(pred_lambda, lambda_)
+        real_label_loss = binary_cross_entropy(pred_label, true_label)
         real_loss = real_lambda_loss + real_label_loss
 
         # train on generated
@@ -58,8 +59,8 @@ class Trainer:
         pred_lambda, pred_label = self.gan.d_forward(fake_X)
         fake_label = torch.zeros(batch_size, 1, device=self._device)
 
-        fake_lambda_loss = nn.functional.l1_loss(pred_lambda, fake_lambda)
-        fake_label_loss = nn.functional.binary_cross_entropy(pred_label, fake_label)
+        fake_lambda_loss = l1_loss(pred_lambda, fake_lambda)
+        fake_label_loss = binary_cross_entropy(pred_label, fake_label)
         fake_loss = fake_lambda_loss + fake_label_loss
 
         # update weights
@@ -70,7 +71,7 @@ class Trainer:
         return loss.item()
 
     def _train_generator(self, X: torch.Tensor, y: torch.Tensor, \
-                         lambda_: torch.Tensor, meta: torch.Tensor):
+                         lambda_: torch.Tensor, meta: torch.Tensor) -> float:
         self.g_opt.zero_grad()
 
         # getting batch_size of the current batch
@@ -81,32 +82,67 @@ class Trainer:
         target_label = torch.ones(batch_size, 1, device=self._device)
         
         # TODO: experiment with lambda loss in generator
-        # fake_meta = get_batch_metafeatures(X, y).to(self._device)
-        # meta_loss = nn.functional.l1_loss(fake_meta, meta)
+        # fake_meta = get_batch_metafeatures(fake_X, y).to(self._device)
+        # meta_loss = l1_loss(fake_meta, meta)
 
-        loss = nn.functional.binary_cross_entropy(pred_label, target_label)
+        loss = binary_cross_entropy(pred_label, target_label)
         loss.backward()
         self.g_opt.step()
 
         return loss.item()
 
     def _train_gan(self, X: torch.Tensor, y: torch.Tensor, \
-                         lambda_: torch.Tensor, meta: torch.Tensor):
-        X = X.to(self._device)
-        y = y.to(self._device)
-        lambda_ = lambda_.to(self._device)
-        meta = meta.to(self._device)
+                         lambda_: torch.Tensor, meta: torch.Tensor) -> Tuple[float, float]:
 
         d_loss = self._train_discriminator(X, y, lambda_, meta)
         g_loss = self._train_generator(X, y, lambda_, meta)
 
         return d_loss, g_loss
     
-    def _test_discriminator(self):
-        ...
-    
-    def _test_generator(self):
-        ...
+    def _evaluate_discriminator(self, X: torch.Tensor, lambda_: torch.Tensor, meta: torch.Tensor):
+        metrics = {}
 
-    def _test_gan(self):
-        ...
+        with torch.no_grad():
+            pred_lambda, pred_label = self.gan.d_forward(X, meta)
+            metrics['Lambda classifier MAE'] = l1_loss(pred_lambda, lambda_).item()
+            metrics['Lambda classifier MSE'] = mse_loss(pred_lambda, lambda_).item()
+
+            pred_ids, true_ids = pred_lambda.argmax(dim=1, keepdim=False), lambda_.argmax(dim=1, keepdim=False)
+            metrics['Lambda classifier accuracy'] = multiclass_accuracy(pred_ids, true_ids).item()
+            metrics['Lambda classifier F1 macro'] = multiclass_f1_score(pred_ids, true_ids, \
+                                                                        num_classes=self.n_clfs, average='macro').item()
+            
+        return metrics
+
+    def _evaluate_generator(self, meta: torch.Tensor) -> Dict[str, float]:
+        metrics = {}
+
+        with torch.no_grad():
+            fake_X = self.gan.g_forward(meta)
+            fake_meta = get_batch_metafeatures(fake_X).to(self._device)
+            metrics['Generated metafeatures MAE'] = l1_loss(fake_meta, meta).item()
+            metrics['Generated metafeatures MSE'] = mse_loss(fake_meta, meta).item()
+
+        return metrics
+
+    def _evaluate_gan(self, X: torch.Tensor, y: torch.Tensor, \
+                      lambda_: torch.Tensor, meta: torch.Tensor) -> Tuple[Dict, Dict]:
+        
+        d_metrics = self._evaluate_discriminator(X, lambda_, meta)
+        g_metrics = self._evaluate_generator(meta)
+
+        return d_metrics, g_metrics
+    
+    def train_epoch(self, X: torch.Tensor, y: torch.Tensor, \
+                      lambda_: torch.Tensor, meta: torch.Tensor) -> Dict[str, float]:
+
+        for X, y, lambda_, meta in self._train_dataloader:
+            X = X.to(self._device)
+            y = y.to(self._device)
+            lambda_ = lambda_.to(self._device)
+            meta = meta.to(self._device)
+
+            d_loss, g_loss = self._train_gan(X, y, lambda_, meta)
+            d_metrics, g_metrics = self._evaluate_gan(X, y, lambda_, meta)
+
+            # TODO: add accumulation of losses and metrics
