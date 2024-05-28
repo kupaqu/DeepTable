@@ -3,6 +3,7 @@ import os
 import pandas as pd
 
 from typing import List
+from tqdm import tqdm
 
 from sklearn.base import ClassifierMixin
 from utils import get_lambda_vector, get_metafeatures_vector
@@ -25,7 +26,8 @@ class OpenMLDataset(torch.utils.data.Dataset):
                 test_dirs.append(line)
         
         csvs_dir = os.path.join(data_dir, 'csv')
-        for csv_dir in os.listdir(csvs_dir):
+        print('Loading dataset...')
+        for csv_dir in tqdm(os.listdir(csvs_dir)):
             if not test and csv_dir in test_dirs \
                 or test and csv_dir not in test_dirs:
                 continue
