@@ -198,7 +198,7 @@ class Trainer:
 
         return evaluated_metrics
     
-    def train(self, epochs: int, test_epoch: int, track_metric: str, mode: str = 'min'):
+    def train(self, epochs: int, test_epoch: int, track_metric: str, mode: str = 'max'):
         
         best_val_metric = None
         last_val_metric = None
@@ -226,8 +226,8 @@ class Trainer:
             if mode == 'min' and last_val_metric < best_val_metric \
                 or mode == 'max' and last_val_metric > best_val_metric:
                 best_val_metric = last_val_metric
-                self.save_checkpoint('best.pt')
-            self.save_checkpoint('last.pt')
+                self.save_checkpoint('best')
+            self.save_checkpoint('last')
 
             # testing
             if test_epoch > 0 and i % test_epoch == 0:
