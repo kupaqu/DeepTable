@@ -4,7 +4,7 @@ from Discriminator import Discriminator
 from Generator import Generator
 from batch_utils import get_batch_metafeatures
 
-class GAN:
+class GAN(torch.nn.Module):
     def __init__(self, n_clfs: int, n_metas: int):
         self._device = 'cpu'
         self.d = Discriminator(n_clfs, n_metas)

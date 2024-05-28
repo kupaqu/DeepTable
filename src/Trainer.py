@@ -1,8 +1,9 @@
 import torch
+import os
 
 from torch.nn.functional import l1_loss, mse_loss, binary_cross_entropy
 from torcheval.metrics.functional import multiclass_f1_score, multiclass_accuracy
-from typing import List, Tuple, Dict
+from typing import List, Dict
 from sklearn.base import ClassifierMixin
 
 from OpenMLDataset import OpenMLDataset
@@ -11,7 +12,7 @@ from batch_utils import get_batch_lambda, get_batch_metafeatures
 from utils import join_dicts, sum_dicts
 
 class Trainer:
-    def __init__(self, clfs: List[ClassifierMixin], data_dir: str, batch_size: int = 16, lr: int = 0.0003):
+    def __init__(self, clfs: List[ClassifierMixin], data_dir: str, batch_size: int = 16, lr: int = 0.0003, run_dir=None):
         self.clfs = clfs
 
         train_dataset = OpenMLDataset(clfs=clfs, data_dir=data_dir, test=False)
@@ -33,6 +34,18 @@ class Trainer:
         self.g_opt = torch.optim.Adam(self.gan.g.parameters(), lr=lr)
 
         self._device = 'cpu'
+
+        if run_dir is None:
+            self.run_dir = os.path.join(os.getcwd(), 'DeepTable-runs')
+            os.makedirs(self.run_dir, exist_ok=True)
+        else:
+            self.run_dir = run_dir
+
+        self.history = {
+            'n_epoch': 0,
+            'Train': [],
+            'Val': []
+        }
     
     def _get_n_metas_from_dataset(self, dataset: torch.utils.data.Dataset) -> int:
         _, _, _, meta = dataset[0]
@@ -185,8 +198,66 @@ class Trainer:
 
         return evaluated_metrics
     
-    def train(self, epochs: int) -> List[Dict[str, float]]:
+    def train(self, epochs: int, test_epoch: int, track_metric: str, mode: str = 'min'):
+        
+        best_val_metric = None
+        last_val_metric = None
+
+        initial_epoch = self.history['n_epoch']
+
+        for i in range(initial_epoch, epochs):
+            print(f'Epoch {i+1}:')
+            # training
+            train_metrics = self.train_epoch()
+            self.history['Train'].append(train_metrics)
+            self._verbose('Train', train_metrics)
+
+            # validating
+            val_metrics = self.evaluate(self._val_dataloader)
+            self.history['Val'].append(val_metrics)
+            self._verbose('Val', val_metrics)
+
+            if best_val_metric is None:
+                best_val_metric = val_metrics[track_metric]
+            last_val_metric = val_metrics[track_metric]
+
+            self.history['n_epoch'] = i
+
+            if mode == 'min' and last_val_metric < best_val_metric \
+                or mode == 'max' and last_val_metric > best_val_metric:
+                best_val_metric = last_val_metric
+                self.save_checkpoint('best.pt')
+            self.save_checkpoint('last.pt')
+
+            # testing
+            if test_epoch > 0 and i % test_epoch == 0:
+                test_metrics = self.evaluate(self._test_dataloader)
+                self._verbose('Test', test_metrics)
+                self._plot_history()
+
+    def _verbose(self, label: str, metrics: Dict[str, float]):
+        # TODO: logging to file
+        print(f'\t{label} metrics:')
+        for k, v in metrics.item():
+            print(f'\t\t{k}: {v}')
+        print()
+
+    def _plot_history(self):
         ...
+
+    def save_checkpoint(self, name: str):
+        torch.save({'model_state_dict': self.gan.state_dict(),
+                    'optimizer_state_dict': {'d_opt': self.d_opt.state_dict(),
+                                             'g_opt': self.g_opt.state_dict()},
+                    'history': self.history},
+                    os.path.join(self.run_dir, f'{name}.pth'))
+
+    def load_checkpoint(self, path: str):
+        checkpoint = torch.load(path)
+        self.gan.load_state_dict(checkpoint['model_state_dict'])
+        self.d_opt.load_state_dict(checkpoint['optimizer_state_dict']['d_opt'])
+        self.g_opt.load_state_dict(checkpoint['optimizer_state_dict']['g_opt'])
+        self.history = checkpoint['history']
     
-    def verbose(self, metrics: Dict[str, float]):
-        ...
+    def get_model(self):
+        return self.gan
