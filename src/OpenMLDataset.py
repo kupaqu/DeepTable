@@ -25,14 +25,14 @@ class OpenMLDataset(torch.utils.data.Dataset):
             for line in f.read().splitlines():
                 test_dirs.append(line)
         
-        csvs_dir = os.path.join(data_dir, 'csv')
+        csvs_dirs = os.listdir(os.path.join(data_dir, 'csv'))
         if test is True:
-            csvs_dir = test_dirs
+            csvs_dirs = test_dirs
         else:
-            csvs_dir = list(set(csvs_dir) - set(test_dirs))
+            csvs_dirs = list(set(csvs_dirs) - set(test_dirs))
         
         print('Loading dataset...')
-        for csv_dir in tqdm(os.listdir(csvs_dir)):
+        for csv_dir in tqdm(os.listdir(csvs_dirs)):
             zero_table = pd.read_csv(os.path.join(csvs_dir, csv_dir, 'zero.csv'), header=None) # rows which target is 0
             one_table = pd.read_csv(os.path.join(csvs_dir, csv_dir, 'one.csv'), header=None) # rows which target is 1
             table = torch.tensor(pd.concat([zero_table, one_table], axis=0).values, dtype=torch.float32)
