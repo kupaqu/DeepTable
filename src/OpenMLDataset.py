@@ -12,9 +12,9 @@ class OpenMLDataset(torch.utils.data.Dataset):
     def __init__(self, clfs: List[ClassifierMixin], data_dir: str, test: bool):
         self.clfs = clfs
         self.tables, self.targets, \
-              self.lambdas, self.metas = self._load_dataset(data_dir, test)
+              self.lambdas, self.metas = self._preprocess_dataset(data_dir, test)
 
-    def _load_dataset(self, data_dir: str):
+    def _preprocess_dataset(self, data_dir: str):
         tables = []
         targets = []
         lambdas = []
