@@ -14,27 +14,16 @@ class OpenMLDataset(torch.utils.data.Dataset):
         self.tables, self.targets, \
               self.lambdas, self.metas = self._load_dataset(data_dir, test)
 
-    def _load_dataset(self, data_dir: str, test: bool):
+    def _load_dataset(self, data_dir: str):
         tables = []
         targets = []
         lambdas = []
         metas = []
         
-        test_dirs = [] # contains filenames of test csv's
-        with open(os.path.join(data_dir, 'test.txt')) as f:
-            for line in f.read().splitlines():
-                test_dirs.append(line)
-        
-        csvs_dirs = os.listdir(os.path.join(data_dir, 'csv'))
-        if test is True:
-            csvs_dirs = test_dirs
-        else:
-            csvs_dirs = list(set(csvs_dirs) - set(test_dirs))
-        
-        print('Loading dataset...')
-        for csv_dir in tqdm(os.listdir(csvs_dirs)):
-            zero_table = pd.read_csv(os.path.join(csvs_dir, csv_dir, 'zero.csv'), header=None) # rows which target is 0
-            one_table = pd.read_csv(os.path.join(csvs_dir, csv_dir, 'one.csv'), header=None) # rows which target is 1
+        print(f'Loading dataset from {data_dir}')
+        for csv_dir in tqdm(os.listdir(data_dir)):
+            zero_table = pd.read_csv(os.path.join(data_dir, csv_dir, 'zero.csv'), header=None) # rows which target is 0
+            one_table = pd.read_csv(os.path.join(data_dir, csv_dir, 'one.csv'), header=None) # rows which target is 1
             table = torch.tensor(pd.concat([zero_table, one_table], axis=0).values, dtype=torch.float32)
 
             zero_target = torch.zeros((len(zero_table),))
@@ -61,17 +50,3 @@ class OpenMLDataset(torch.utils.data.Dataset):
     def __getitem__(self, i):
         return self.tables[i], self.targets[i], \
             self.lambdas[i], self.metas[i]
-    
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.naive_bayes import GaussianNB
-# from sklearn.ensemble import RandomForestClassifier
-
-# if __name__ == '__main__':
-
-#     train_dataset = OpenMLDataset(clfs=[LogisticRegression(max_iter=1000),
-#                                         GaussianNB(),
-#                                         RandomForestClassifier()],
-#                                   data_dir='data',
-#                                   test=True)
-    
-#     print(len(train_dataset.tables), len(train_dataset.targets), len(train_dataset.lambdas), len(train_dataset.metas))

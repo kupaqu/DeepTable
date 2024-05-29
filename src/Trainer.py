@@ -12,11 +12,11 @@ from batch_utils import get_batch_lambda, get_batch_metafeatures
 from utils import join_dicts, sum_dicts
 
 class Trainer:
-    def __init__(self, clfs: List[ClassifierMixin], data_dir: str, batch_size: int = 16, lr: int = 0.0003, run_dir=None):
+    def __init__(self, clfs: List[ClassifierMixin], train_data_dir: str, test_data_dir: str, batch_size: int = 16, lr: int = 0.0003, run_dir=None):
         self.clfs = clfs
 
-        train_dataset = OpenMLDataset(clfs=clfs, data_dir=data_dir, test=False)
-        test_dataset = OpenMLDataset(clfs=clfs, data_dir=data_dir, test=True)
+        train_dataset = OpenMLDataset(clfs=clfs, data_dir=train_data_dir, test=False)
+        test_dataset = OpenMLDataset(clfs=clfs, data_dir=test_data_dir, test=True)
 
         train_size = int(0.67 * len(train_dataset))
         val_size = len(train_dataset) - train_size
@@ -233,7 +233,6 @@ class Trainer:
             if test_epoch > 0 and i % test_epoch == 0:
                 test_metrics = self.evaluate(self._test_dataloader)
                 self._verbose('Test', test_metrics)
-                self._plot_history()
 
     def _verbose(self, label: str, metrics: Dict[str, float]):
         # TODO: logging to file
@@ -241,9 +240,6 @@ class Trainer:
         for k, v in metrics.item():
             print(f'\t\t{k}: {v}')
         print()
-
-    def _plot_history(self):
-        ...
 
     def save_checkpoint(self, name: str):
         torch.save({'model_state_dict': self.gan.state_dict(),
@@ -258,6 +254,3 @@ class Trainer:
         self.d_opt.load_state_dict(checkpoint['optimizer_state_dict']['d_opt'])
         self.g_opt.load_state_dict(checkpoint['optimizer_state_dict']['g_opt'])
         self.history = checkpoint['history']
-    
-    def get_model(self):
-        return self.gan
