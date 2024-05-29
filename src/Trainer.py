@@ -12,7 +12,8 @@ from batch_utils import get_batch_lambda, get_batch_metafeatures
 from utils import join_dicts, sum_dicts
 
 class Trainer:
-    def __init__(self, clfs: List[ClassifierMixin], train_dataset: OpenMLDataset, test_dataset: OpenMLDataset, batch_size: int = 16, lr: int = 0.0003, run_dir=None):
+    def __init__(self, clfs: List[ClassifierMixin], train_dataset: OpenMLDataset, test_dataset: OpenMLDataset, \
+                 batch_size: int = 16, lr: int = 0.0003, run_dir: str = None):
         self.clfs = clfs
 
         train_size = int(0.67 * len(train_dataset))
