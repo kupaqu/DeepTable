@@ -9,7 +9,7 @@ from sklearn.base import ClassifierMixin
 from utils import get_lambda_vector, get_metafeatures_vector
 
 class OpenMLDataset(torch.utils.data.Dataset):
-    def __init__(self, clfs: List[ClassifierMixin], data_dir: str, test: bool):
+    def __init__(self, clfs: List[ClassifierMixin], data_dir: str):
         self.clfs = clfs
         self.tables, self.targets, \
               self.lambdas, self.metas = self._preprocess_dataset(data_dir, test)
