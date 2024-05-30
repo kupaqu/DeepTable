@@ -241,7 +241,8 @@ class Trainer:
         print()
 
     def save_checkpoint(self, name: str):
-        torch.save({'model_state_dict': self.gan.state_dict(),
+        torch.save({'model_state_dict': {'d': self.gan.d.state_dict(),
+                                         'g': self.gan.g.state_dict()},
                     'optimizer_state_dict': {'d_opt': self.d_opt.state_dict(),
                                              'g_opt': self.g_opt.state_dict()},
                     'history': self.history},
@@ -249,7 +250,8 @@ class Trainer:
 
     def load_checkpoint(self, path: str):
         checkpoint = torch.load(path)
-        self.gan.load_state_dict(checkpoint['model_state_dict'])
+        self.gan.d.load_state_dict(checkpoint['model_state_dict']['d'])
+        self.gan.g.load_state_dict(checkpoint['model_state_dict']['g'])
         self.d_opt.load_state_dict(checkpoint['optimizer_state_dict']['d_opt'])
         self.g_opt.load_state_dict(checkpoint['optimizer_state_dict']['g_opt'])
         self.history = checkpoint['history']
