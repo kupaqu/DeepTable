@@ -236,7 +236,7 @@ class Trainer:
     def _verbose(self, label: str, metrics: Dict[str, float]):
         # TODO: logging to file
         print(f'\t{label} metrics:')
-        for k, v in metrics.item():
+        for k, v in metrics.items():
             print(f'\t\t{k}: {v}')
         print()
 
