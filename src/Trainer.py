@@ -5,6 +5,7 @@ from torch.nn.functional import l1_loss, mse_loss, binary_cross_entropy
 from torcheval.metrics.functional import multiclass_f1_score, multiclass_accuracy
 from typing import List, Dict
 from sklearn.base import ClassifierMixin
+from tqdm import tqdm
 
 from OpenMLDataset import OpenMLDataset
 from GAN import GAN
@@ -157,7 +158,7 @@ class Trainer:
         
         running_metrics = None
 
-        for X, y, lambda_, meta in self._train_dataloader:
+        for X, y, lambda_, meta in tqdm(self._train_dataloader, desc='Training'):
             X = X.to(self._device)
             y = y.to(self._device)
             lambda_ = lambda_.to(self._device)
@@ -179,7 +180,7 @@ class Trainer:
     def evaluate(self, dataloader: torch.utils.data.DataLoader) -> Dict[str, float]:
         running_metrics = None
 
-        for X, y, lambda_, meta in dataloader:
+        for X, y, lambda_, meta in tqdm(dataloader, desc='Evaluating'):
             X = X.to(self._device)
             y = y.to(self._device)
             lambda_ = lambda_.to(self._device)
