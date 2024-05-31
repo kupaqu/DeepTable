@@ -6,7 +6,7 @@ from typing import List
 from tqdm import tqdm
 
 from sklearn.base import ClassifierMixin
-from utils import get_lambda_vector, get_metafeatures_vector
+from .utils import get_lambda_vector, get_metafeatures_vector
 
 class OpenMLDataset(torch.utils.data.Dataset):
     def __init__(self, clfs: List[ClassifierMixin], data_dir: str):

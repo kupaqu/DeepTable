@@ -3,7 +3,7 @@ import torch
 
 from typing import List, Tuple
 
-from utils import get_lambda_vector, get_metafeatures_vector
+from .utils import get_lambda_vector, get_metafeatures_vector
 
 # this module is used only with generated tables,
 # which have column dimension before rows

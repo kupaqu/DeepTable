@@ -7,10 +7,10 @@ from typing import List, Dict
 from sklearn.base import ClassifierMixin
 from tqdm import tqdm
 
-from OpenMLDataset import OpenMLDataset
-from GAN import GAN
-from batch_utils import get_batch_lambda, get_batch_metafeatures
-from utils import join_dicts, sum_dicts
+from .OpenMLDataset import OpenMLDataset
+from .GAN import GAN
+from .batch_utils import get_batch_lambda, get_batch_metafeatures
+from .utils import join_dicts, sum_dicts
 
 class Trainer:
     def __init__(self, clfs: List[ClassifierMixin], train_dataset: OpenMLDataset, test_dataset: OpenMLDataset, \
@@ -126,9 +126,9 @@ class Trainer:
             pred_lambda, pred_label = self.gan.d_forward(X, meta)
             metrics['Lambda classifier MAE'] = l1_loss(pred_lambda, lambda_).item()
             metrics['Lambda classifier MSE'] = mse_loss(pred_lambda, lambda_).item()
-
             pred_ids, true_ids = pred_lambda.argmax(dim=1, keepdim=False), lambda_.argmax(dim=1, keepdim=False)
             metrics['Lambda classifier accuracy'] = multiclass_accuracy(pred_ids, true_ids).item()
+            # TODO: fix issue with WARNING:root:Warning: Some classes do not exist in the target. F1 scores for these classes will be cast to zeros.
             metrics['Lambda classifier F1 macro'] = multiclass_f1_score(pred_ids, true_ids, \
                                                                         num_classes=self.n_clfs, average='macro').item()
             

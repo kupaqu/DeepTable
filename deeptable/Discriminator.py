@@ -2,7 +2,7 @@ import torch
 
 from torch import nn
 
-from DeepTable import DeepTable
+from .DeepTable import DeepTable
 
 class Discriminator(nn.Module):
     def __init__(self, n_clfs: int, n_metas: int):

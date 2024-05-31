@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from deepsets import *
+from .deepsets import *
 
 class DeepTable(torch.nn.Module):
     def __init__(self):

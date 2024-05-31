@@ -1,8 +1,8 @@
 import torch
 
-from Discriminator import Discriminator
-from Generator import Generator
-from batch_utils import get_batch_metafeatures
+from .Discriminator import Discriminator
+from .Generator import Generator
+from .batch_utils import get_batch_metafeatures
 
 class GAN:
     def __init__(self, n_clfs: int, n_metas: int):
