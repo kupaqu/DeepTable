@@ -90,6 +90,6 @@ This project is based on research and code from several papers and open-source r
 
 All deep learning execution is based on [Pytorch](https://pytorch.org).
 
-Deep Table are based on experiments in this [repository](https://github.com/garipovroma/bachelor-thesis)
+Deep Table are based on experiments in this [repository](https://github.com/garipovroma/bachelor-thesis).
 
 Deep Table uses the Deep Sets layers from this [repository](https://github.com/dpernes/deepsets-digitsum) which described in Deep Sets by Zaheer et al. [paper](https://arxiv.org/abs/1703.06114).
