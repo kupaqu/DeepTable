@@ -13,6 +13,8 @@ from .batch_utils import get_batch_lambda, get_batch_metafeatures
 from .utils import join_dicts, sum_dicts
 
 class Trainer:
+    """Trainer class for DeepTable GAN.
+    """
     def __init__(self, clfs: List[ClassifierMixin], train_dataset: OpenMLDataset, test_dataset: OpenMLDataset, \
                  batch_size: int = 16, lr: int = 0.0003, run_dir: str = None):
         self.clfs = clfs
@@ -53,6 +55,11 @@ class Trainer:
         return n_metas
     
     def to(self, device: str):
+        """Performs GAN device conversion and determines the location of tensors in the train loop.
+
+        Args:
+            device (str): Device ('cpu' or 'cuda')
+        """
         self._device = device
         self.gan.to(device)
 
@@ -155,6 +162,11 @@ class Trainer:
         return metrics
     
     def train_epoch(self) -> Dict[str, float]:
+        """Train one epoch on train dataset.
+
+        Returns:
+            Dict[str, float]: Metrics
+        """
         
         running_metrics = None
 
@@ -178,6 +190,14 @@ class Trainer:
         return epoch_metrics
     
     def evaluate(self, dataloader: torch.utils.data.DataLoader) -> Dict[str, float]:
+        """Evaluate on dataset.
+
+        Args:
+            dataloader (torch.utils.data.DataLoader): Dataset to evaluate on
+
+        Returns:
+            Dict[str, float]: Metrics
+        """
         running_metrics = None
 
         for X, y, lambda_, meta in tqdm(dataloader, desc='Evaluating'):
@@ -198,6 +218,14 @@ class Trainer:
         return evaluated_metrics
     
     def train(self, epochs: int, test_epoch: int, track_metric: str, mode: str = 'max'):
+        """Train model.
+
+        Args:
+            epochs (int): Number of epochs
+            test_epoch (int): Evaluate model on every N epoch
+            track_metric (str): Key of metric to track
+            mode (str, optional): Should track_metric rise or fall through training. Defaults to 'max'.
+        """
         
         best_val_metric = None
         last_val_metric = None
@@ -225,7 +253,7 @@ class Trainer:
             if mode == 'min' and last_val_metric < best_val_metric \
                 or mode == 'max' and last_val_metric > best_val_metric:
                 best_val_metric = last_val_metric
-                self.save_checkpoint('best')
+                self.save_checkpoint('best', self.run_dir)
             self.save_checkpoint('last')
 
             # testing
@@ -240,7 +268,13 @@ class Trainer:
             print(f'\t\t{k}: {v}')
         print()
 
-    def save_checkpoint(self, name: str):
+    def save_checkpoint(self, name: str, dir_path: str):
+        """Save model training checkpoint.
+
+        Args:
+            name (str): Name of the checkpoint
+            dir_path (str): Directory path where to save checkpoint
+        """
         torch.save({'model_state_dict': {'d': self.gan.d.state_dict(),
                                          'g': self.gan.g.state_dict()},
                     'optimizer_state_dict': {'d_opt': self.d_opt.state_dict(),
@@ -249,6 +283,11 @@ class Trainer:
                     os.path.join(self.run_dir, f'{name}.pth'))
 
     def load_checkpoint(self, path: str):
+        """Load model training checkpoint from file.
+
+        Args:
+            path (str): Full path to checkpoint file
+        """
         checkpoint = torch.load(path)
         self.gan.d.load_state_dict(checkpoint['model_state_dict']['d'])
         self.gan.g.load_state_dict(checkpoint['model_state_dict']['g'])
