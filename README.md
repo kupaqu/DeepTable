@@ -20,7 +20,7 @@ pip install git+https://github.com/kupaqu/DeepTable.git
 
 ## Usage
 
-### Initialize dataset instance
+Initialize dataset instance
 
 ``` python
 from deeptable import OpenMLDataset
@@ -50,7 +50,7 @@ data_dir
 └─── ...
 ```
 
-### Initialize trainer and train a model
+Initialize trainer and train a model
 
 ``` python
 trainer = Trainer(clfs=clfs,
@@ -65,7 +65,7 @@ trainer.train(epochs=10,
               track_metric='Lambda classifier F1 macro')
 ```
 
-### Load checkpoint to existing trainer instance to continue training
+Load checkpoint to existing trainer instance to continue training
 
 ``` python
 import torch
@@ -73,7 +73,7 @@ import torch
 trainer.load_checkpoint(path='path/to/checkpoint.pt')
 ```
 
-### Load checkpoint and extract GAN
+Load checkpoint and extract GAN
 
 ``` python
 from deeptable import GAN
