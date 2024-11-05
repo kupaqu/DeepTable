@@ -25,12 +25,14 @@ def get_metafeatures_vector(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     mfe1.fit(X, y, suppress_warnings=True)
     ft1 = np.array(mfe1.extract(suppress_warnings=True)[1])
     ft1[np.isnan(ft1)] = 0
+    print('column-wise shape:', ft1.shape)
 
     # row-wise
     mfe2 = MFE(groups=['model-based'])
     mfe2.fit(X.T, suppress_warnings=True)
     ft2 = np.array(mfe2.extract(suppress_warnings=True)[1])
     ft2[np.isnan(ft2)] = 0
+    print('row-wise shape:', ft2.shape)
 
     metafeatures_vector = MinMaxScaler().fit_transform(np.concatenate([ft1, ft2], axis=0).reshape(-1, 1)).flatten()
 
