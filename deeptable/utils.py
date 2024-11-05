@@ -32,7 +32,7 @@ def get_metafeatures_vector(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     ft2 = np.array(mfe2.extract(suppress_warnings=True)[1])
     ft2[np.isnan(ft2)] = 0
 
-    metafeatures_vector = MinMaxScaler().fit_transform(np.concatenate(ft1, ft2, axis=0).reshape(-1, 1)).flatten()
+    metafeatures_vector = MinMaxScaler().fit_transform(np.concatenate([ft1, ft2], axis=0).reshape(-1, 1)).flatten()
 
     return metafeatures_vector
 
