@@ -20,11 +20,19 @@ def get_metafeatures_vector(X: np.ndarray, y: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: Model-based metafeatures vector
     """
-    mfe = MFE(groups=['model-based'])
-    mfe.fit(X, y, suppress_warnings=True)
-    ft = np.array(mfe.extract(suppress_warnings=True)[1])
-    ft[np.isnan(ft)] = 0
-    metafeatures_vector = MinMaxScaler().fit_transform(ft.reshape(-1, 1)).flatten()
+    # column-wise
+    mfe1 = MFE(groups=['model-based'])
+    mfe1.fit(X, y, suppress_warnings=True)
+    ft1 = np.array(mfe1.extract(suppress_warnings=True)[1])
+    ft1[np.isnan(ft1)] = 0
+
+    # row-wise
+    mfe2 = MFE(groups=['model-based'])
+    mfe2.fit(X.T, suppress_warnings=True)
+    ft2 = np.array(mfe2.extract(suppress_warnings=True)[1])
+    ft2[np.isnan(ft2)] = 0
+
+    metafeatures_vector = MinMaxScaler().fit_transform(np.concatenate(ft1, ft2, axis=0).reshape(-1, 1)).flatten()
 
     return metafeatures_vector
 
