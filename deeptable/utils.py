@@ -7,11 +7,22 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import accuracy_score
 from sklearn.base import clone, ClassifierMixin
 
-def get_metafeatures_vector(X: np.ndarray, y: np.ndarray) -> np.ndarray:
+def get_metafeatures_vector(X: np.ndarray,
+                            y: np.ndarray,
+                            groups: list[str] = ['general',
+                                                 'statistical',
+                                                 'model-based',
+                                                 'landmarking',
+                                                 'clustering',
+                                                 'concept',
+                                                 'itemset',
+                                                 'complexity',]
+                            ) -> np.ndarray:
     """Get metafeatures from table (X) and target column (y).
 
-    Firstly, this function extracts model-based metafeatures
-    vector, after that scaling it with MixMaxSclaer.
+    Firstly, this function extracts metafeatures
+    vector from table with targets and transposed table,
+    after that scaling it with MixMaxSclaer.
 
     Args:
         X (np.ndarray): Table with shape (n_rows, n_cols)
@@ -21,14 +32,14 @@ def get_metafeatures_vector(X: np.ndarray, y: np.ndarray) -> np.ndarray:
         np.ndarray: Model-based metafeatures vector
     """
     # column-wise
-    mfe1 = MFE(groups=['model-based'])
+    mfe1 = MFE(groups=groups)
     mfe1.fit(X, y, suppress_warnings=True)
     ft1 = np.array(mfe1.extract(suppress_warnings=True)[1])
     ft1[np.isnan(ft1)] = 0
     # print('column-wise shape:', ft1.shape)
 
     # row-wise
-    mfe2 = MFE(groups=['model-based'])
+    mfe2 = MFE(groups=groups)
     mfe2.fit(X.T, suppress_warnings=True)
     ft2 = np.array(mfe2.extract(suppress_warnings=True)[1])
     ft2[np.isnan(ft2)] = 0
