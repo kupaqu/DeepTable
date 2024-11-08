@@ -254,7 +254,7 @@ class Trainer:
                 or mode == 'max' and last_val_metric > best_val_metric:
                 best_val_metric = last_val_metric
                 self.save_checkpoint('best', self.run_dir)
-            self.save_checkpoint('last')
+            self.save_checkpoint('last', self.run_dir)
 
             # testing
             if test_epoch > 0 and i % test_epoch == 0:
@@ -280,7 +280,7 @@ class Trainer:
                     'optimizer_state_dict': {'d_opt': self.d_opt.state_dict(),
                                              'g_opt': self.g_opt.state_dict()},
                     'history': self.history},
-                    os.path.join(self.run_dir, f'{name}.pth'))
+                    os.path.join(dir_path, f'{name}.pth'))
 
     def load_checkpoint(self, path: str):
         """Load model training checkpoint from file.
