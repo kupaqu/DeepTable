@@ -11,7 +11,7 @@ class DeepTable(torch.nn.Module):
         self.equiv_1 = EquivLinear(128, 256)
         self.inv_1 = InvLinear(256, 512)
 
-    def forward(self, x):
+    def _forward(self, x):
         N = x.shape[1] # количество столбцов в таблице
         x = x.unsqueeze(-1) # (batch_size, N, M, 1)
         x = x.flatten(0, 1) # (batch_size * N, M, 1)
@@ -26,3 +26,10 @@ class DeepTable(torch.nn.Module):
         x = self.inv_1(x) # (batch_size, 512)
 
         return x
+    
+    def forward(self, x):
+        x1 = self._forward(x)
+        x2 = self._forward(torch.permute(x, (0, 2, 1)))
+        concat = torch.cat((x1, x2), dim=-1)
+
+        return concat
