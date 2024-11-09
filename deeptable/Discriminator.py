@@ -9,7 +9,7 @@ class Discriminator(nn.Module):
         super().__init__()
         self.deeptable = DeepTable()
         self.metaclassifier = nn.Sequential(
-            nn.Linear(512+n_metas, 128),
+            nn.Linear(1024+n_metas, 128),
             nn.ReLU(),
             nn.Dropout(0.2),
 
@@ -20,7 +20,7 @@ class Discriminator(nn.Module):
             nn.Linear(64, n_clfs),
         )
         self.discriminator = nn.Sequential(
-            nn.Linear(512+n_metas, 128),
+            nn.Linear(1024+n_metas, 128),
             nn.ReLU(),
             nn.Dropout(0.2),
 
