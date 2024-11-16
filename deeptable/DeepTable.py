@@ -31,7 +31,7 @@ class DeepTable(torch.nn.Module):
         batch_size = x.shape[0]
         sum_ = torch.zeros((batch_size, 1024))
 
-        for i in batch_size:
+        for i in range(batch_size):
             xi = x[i:i+1]
             yi = y[i]
 
