@@ -27,9 +27,21 @@ class DeepTable(torch.nn.Module):
 
         return x
     
-    def forward(self, x):
-        x1 = self._forward(x)
-        x2 = self._forward(torch.permute(x, (0, 2, 1)))
-        concat = torch.cat((x1, x2), dim=-1)
+    def forward(self, x, y):
+        batch_size = x.shape[0]
+        sum_ = torch.zeros((batch_size, 1024))
 
-        return concat
+        for i in batch_size:
+            xi = x[i:i+1]
+            yi = y[i]
+
+            for class_ in torch.unique(yi):
+                subtable = xi[:, :, yi == class_]
+                
+                meta = self._forward(subtable)
+                meta_t = self._forward(torch.permute(subtable, (0, 2, 1)))
+                
+                concat = torch.cat((meta, meta_t), dim=-1)
+                sum_[i] += torch.flatten(concat)
+
+        return sum_

@@ -71,7 +71,7 @@ class Trainer:
         batch_size = X.shape[0]
 
         # train on real
-        pred_lambda, pred_label = self.gan.d_forward(X, meta)
+        pred_lambda, pred_label = self.gan.d_forward(X, y, meta)
         true_label = torch.ones(batch_size, 1, device=self._device)
 
         real_lambda_loss = l1_loss(pred_lambda, lambda_)
@@ -82,7 +82,7 @@ class Trainer:
         fake_X = self.gan.g_forward(meta)
         fake_lambda = get_batch_lambda(clfs=self.clfs, X=fake_X).to(self._device)
         
-        pred_lambda, pred_label = self.gan.d_forward(fake_X)
+        pred_lambda, pred_label = self.gan.d_forward(fake_X, y) # TODO: генерировать y
         fake_label = torch.zeros(batch_size, 1, device=self._device)
 
         fake_lambda_loss = l1_loss(pred_lambda, fake_lambda)
@@ -104,7 +104,7 @@ class Trainer:
         batch_size = X.shape[0]
 
         fake_X = self.gan.g_forward(meta)
-        pred_lambda_, pred_label = self.gan.d_forward(fake_X)
+        pred_lambda_, pred_label = self.gan.d_forward(fake_X, y)
         target_label = torch.ones(batch_size, 1, device=self._device)
         
         # TODO: experiment with lambda loss in generator
@@ -126,11 +126,11 @@ class Trainer:
 
         return losses
     
-    def _evaluate_discriminator(self, X: torch.Tensor, lambda_: torch.Tensor, meta: torch.Tensor):
+    def _evaluate_discriminator(self, X: torch.Tensor, y: torch.Tensor, lambda_: torch.Tensor, meta: torch.Tensor):
         metrics = {}
 
         with torch.no_grad():
-            pred_lambda, pred_label = self.gan.d_forward(X, meta)
+            pred_lambda, pred_label = self.gan.d_forward(X, y, meta)
             metrics['Lambda classifier MAE'] = l1_loss(pred_lambda, lambda_).item()
             metrics['Lambda classifier MSE'] = mse_loss(pred_lambda, lambda_).item()
             pred_ids, true_ids = pred_lambda.argmax(dim=1, keepdim=False), lambda_.argmax(dim=1, keepdim=False)
@@ -155,7 +155,7 @@ class Trainer:
     def _evaluate_gan(self, X: torch.Tensor, y: torch.Tensor, \
                       lambda_: torch.Tensor, meta: torch.Tensor) -> Dict[str, float]:
         
-        d_metrics = self._evaluate_discriminator(X, lambda_, meta)
+        d_metrics = self._evaluate_discriminator(X, y, lambda_, meta)
         g_metrics = self._evaluate_generator(meta)
         metrics = join_dicts([d_metrics, g_metrics])
 

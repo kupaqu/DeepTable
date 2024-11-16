@@ -39,15 +39,15 @@ def get_metafeatures_vector(X: np.ndarray,
     # print('column-wise shape:', ft1.shape)
 
     # row-wise
-    mfe2 = MFE(groups=groups)
-    mfe2.fit(X.T, suppress_warnings=True)
-    ft2 = np.array(mfe2.extract(suppress_warnings=True)[1])
-    ft2[np.isnan(ft2)] = 0
+    # mfe2 = MFE(groups=groups)
+    # mfe2.fit(X.T, suppress_warnings=True)
+    # ft2 = np.array(mfe2.extract(suppress_warnings=True)[1])
+    # ft2[np.isnan(ft2)] = 0
     # print('row-wise shape:', ft2.shape)
 
-    metafeatures_vector = MinMaxScaler().fit_transform(np.concatenate([ft1, ft2], axis=0).reshape(-1, 1)).flatten()
+    # metafeatures_vector = MinMaxScaler().fit_transform(np.concatenate([ft1, ft2], axis=0).reshape(-1, 1)).flatten()
 
-    return metafeatures_vector
+    return ft1
 
 def fit_evaluate(clf: ClassifierMixin, X: np.ndarray, y: np.ndarray) -> float:
     """Fit and evaluate accuracy sklearn classifier.

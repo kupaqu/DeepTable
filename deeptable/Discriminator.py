@@ -32,8 +32,8 @@ class Discriminator(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, x: torch.Tensor, meta: torch.Tensor):
-        features = self.deeptable(x)
+    def forward(self, x: torch.Tensor, y: torch.Tensor, meta: torch.Tensor):
+        features = self.deeptable(x, y)
         concat = torch.cat((features, meta), 1)
 
         lambda_ = self.metaclassifier(concat) # выдает лучший алгоритм на заданном датасете

@@ -24,7 +24,7 @@ class GAN:
         self.d.to(device)
         self.g.to(device)
 
-    def d_forward(self, x: torch.Tensor, meta: torch.Tensor = None) -> Tuple[torch.Tensor, torch.Tensor]:
+    def d_forward(self, x: torch.Tensor, y: torch.Tensor, meta: torch.Tensor = None) -> Tuple[torch.Tensor, torch.Tensor]:
         """Wrapper for discriminator forward method with preprocessing.
 
         Args:
@@ -35,9 +35,9 @@ class GAN:
             torch.Tensor, torch.Tensor: Lambda vector, label (real or fake)
         """
         if meta is None: # if meta is None, it means that table is generated
-            meta = get_batch_metafeatures(x).to(self._device)
+            meta = get_batch_metafeatures(x, y).to(self._device)
 
-        return self.d(x, meta)
+        return self.d(x, y, meta)
     
     def g_forward(self, meta: torch.Tensor) -> torch.Tensor:
         """Wrapper for generator forward method with preprocessing.
