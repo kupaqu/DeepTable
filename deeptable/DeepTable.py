@@ -29,7 +29,7 @@ class DeepTable(torch.nn.Module):
     
     def forward(self, x, y):
         batch_size = x.shape[0]
-        sum_ = torch.zeros((batch_size, 1024))
+        sum_ = torch.zeros((batch_size, 1024), device=self.x.get_device())
 
         for i in range(batch_size):
             xi = x[i:i+1]
