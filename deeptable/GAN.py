@@ -39,7 +39,7 @@ class GAN:
 
         return self.d(x, y, meta)
     
-    def g_forward(self, meta: torch.Tensor, n_classes: int) -> torch.Tensor:
+    def g_forward(self, meta: torch.Tensor, n_classes: int = 2) -> torch.Tensor:
         """Wrapper for generator forward method with preprocessing.
 
         Args:

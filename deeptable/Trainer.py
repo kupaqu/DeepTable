@@ -97,13 +97,13 @@ class Trainer:
         return loss.item()
 
     def _train_generator(self, X: torch.Tensor, y: torch.Tensor, \
-                         lambda_: torch.Tensor, meta: torch.Tensor, n_classes: int = 2) -> float:
+                         lambda_: torch.Tensor, meta: torch.Tensor) -> float:
         self.g_opt.zero_grad()
 
         # getting batch_size of the current batch
         batch_size = X.shape[0]
 
-        fake_X = self.gan.g_forward(meta, n_classes)
+        fake_X = self.gan.g_forward(meta)
         pred_lambda_, pred_label = self.gan.d_forward(fake_X, y)
         target_label = torch.ones(batch_size, 1, device=self._device)
         
