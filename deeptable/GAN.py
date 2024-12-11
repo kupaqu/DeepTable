@@ -39,7 +39,7 @@ class GAN:
 
         return self.d(x, y, meta)
     
-    def g_forward(self, meta: torch.Tensor) -> torch.Tensor:
+    def g_forward(self, meta: torch.Tensor, n_classes: int) -> torch.Tensor:
         """Wrapper for generator forward method with preprocessing.
 
         Args:
@@ -52,4 +52,4 @@ class GAN:
         meta = meta.view(batch_size, -1, 1, 1)
         z = torch.randn(batch_size, 32, 1, 1, device=self._device)
 
-        return self.g(z, meta).view(-1, 16, 128)
+        return self.g(z, meta, n_classes).view(-1, 16, 128)
