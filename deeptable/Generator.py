@@ -39,5 +39,5 @@ class Generator(nn.Module):
             to_concat.append(output)
 
         concat = torch.cat(to_concat, 3)
-        print(concat.shape)
+        # print(concat.shape)
         return concat
