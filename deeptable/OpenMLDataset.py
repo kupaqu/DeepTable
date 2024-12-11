@@ -21,7 +21,7 @@ class OpenMLDataset(torch.utils.data.Dataset):
         metas = []
         
         print(f'Loading dataset from {data_dir}')
-        for csv_dir in tqdm(os.listdir(data_dir)):
+        for csv_dir in tqdm(os.listdir(data_dir)[:100]):
             zero_table = pd.read_csv(os.path.join(data_dir, csv_dir, 'zero.csv'), header=None) # rows which target is 0
             one_table = pd.read_csv(os.path.join(data_dir, csv_dir, 'one.csv'), header=None) # rows which target is 1
             table = torch.tensor(pd.concat([zero_table, one_table], axis=0).values, dtype=torch.float32)
