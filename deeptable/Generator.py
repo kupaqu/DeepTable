@@ -22,7 +22,7 @@ class Generator(nn.Module):
             nn.BatchNorm2d(32),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(32, 1, kernel_size=(4, 9))
+            nn.ConvTranspose2d(32, 1, kernel_size=(4, 8))
         )
 
     def forward(self, z: torch.Tensor, meta: torch.Tensor, n_classes: torch.Tensor):
