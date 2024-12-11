@@ -26,10 +26,12 @@ class Generator(nn.Module):
         )
 
     def forward(self, x: torch.Tensor, meta: torch.Tensor, n_classes: torch.Tensor):
+        device = x.get_device()
+
         to_concat = []
         input_ = torch.cat((x, meta), 1)
         for i in range(n_classes):
-            pos = torch.ones((input_.shape[0], 1, 1, 1)) * i
+            pos = torch.ones((input_.shape[0], 1, 1, 1), device=device) * torch.tensor(i, device=device)
             input_with_pos = torch.cat((input_, pos), 1)
             
             output = self.upconv(input_with_pos)
