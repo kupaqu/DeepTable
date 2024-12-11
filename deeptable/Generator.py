@@ -26,5 +26,7 @@ class Generator(nn.Module):
         )
 
     def forward(self, x: torch.Tensor, meta: torch.Tensor):
+        print('x shape:', x.shape)
+        print('meta shape:', meta.shape)
         concat = torch.cat((x, meta), 1)
         return self.upconv(concat)
