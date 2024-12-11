@@ -10,23 +10,32 @@ class Generator(nn.Module):
             nn.BatchNorm2d(64),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(64, 128, kernel_size=(4, 7), stride=(1, 2), padding=(0, 2)),
+            nn.ConvTranspose2d(64, 128, kernel_size=(4, 7)),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(128, 64, kernel_size=(4, 7), stride=(1, 2), padding=(0, 2)),
+            nn.ConvTranspose2d(128, 64, kernel_size=(4, 7)),
             nn.BatchNorm2d(64),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(64, 32, kernel_size=(4, 7), stride=(1, 2), padding=(0, 2)),
+            nn.ConvTranspose2d(64, 32, kernel_size=(4, 7)),
             nn.BatchNorm2d(32),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(32, 1, kernel_size=(4, 8), stride=(1, 2), padding=(0, 2))
+            nn.ConvTranspose2d(32, 1, kernel_size=(4, 8))
         )
 
-    def forward(self, x: torch.Tensor, meta: torch.Tensor):
-        print('x shape:', x.shape)
-        print('meta shape:', meta.shape)
-        concat = torch.cat((x, meta), 1)
-        return self.upconv(concat)
+    def forward(self, x: torch.Tensor, meta: torch.Tensor, n_classes: torch.Tensor):
+        to_concat = []
+        input_ = torch.cat((x, meta), 1)
+        for i in range(n_classes):
+            pos = torch.ones((input_.shape[0], 1, 1, 1)) * i
+            input_with_pos = torch.cat((input_, pos), 1)
+            
+            output = self.upconv(input_with_pos)
+            print(output.shape)
+            to_concat.append(output)
+
+        concat = torch.cat(to_concat, 1)
+
+        return concat

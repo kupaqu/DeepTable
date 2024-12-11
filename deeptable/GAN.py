@@ -12,7 +12,7 @@ class GAN:
     def __init__(self, n_clfs: int, n_metas: int):
         self._device = 'cpu'
         self.d = Discriminator(n_clfs, n_metas)
-        self.g = Generator(n_metas)
+        self.g = Generator(n_metas+1) # +1 для позиционного кодирования
 
     def to(self, device: str):
         """Performs GAN device conversion.
