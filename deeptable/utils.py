@@ -9,14 +9,16 @@ from sklearn.base import clone, ClassifierMixin
 
 def get_metafeatures_vector(X: np.ndarray,
                             y: np.ndarray,
-                            groups: list[str] = ['general',
-                                                 'statistical',
-                                                 'model-based',
-                                                 'landmarking',
-                                                 'clustering',
-                                                 'concept',
-                                                 'itemset',
-                                                 'complexity',]
+                            groups: list[str] = [
+                                                #  'general',
+                                                 'statistical', # 1
+                                                #  'model-based', # 2
+                                                #  'landmarking',
+                                                #  'clustering',
+                                                #  'concept',
+                                                #  'itemset',
+                                                #  'complexity',
+                                                 ]
                             ) -> np.ndarray:
     """Get metafeatures from table (X) and target column (y).
 
