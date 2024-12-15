@@ -29,12 +29,11 @@ class Generator(nn.Module):
         device = z.get_device()
 
         to_concat = []
-        input_ = torch.cat((z, meta), 1)
         for i in range(n_classes):
-            pos = torch.ones((input_.shape[0], 1, 1, 1), device=device) * torch.tensor(i, device=device)
-            input_with_pos = torch.cat((input_, pos), 1)
-            
-            output = self.upconv(input_with_pos)
+            pos = torch.ones_like(z, device=device) * torch.tensor(i, device=device) + z
+            input_ = torch.cat((pos, meta), 1)
+
+            output = self.upconv(input_)
             # print(output.shape)
             to_concat.append(output)
 
