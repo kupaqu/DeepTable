@@ -190,7 +190,7 @@ class Trainer:
 
         return epoch_metrics
     
-    def evaluate(self, dataloader: torch.utils.data.DataLoader, n_epoch) -> Dict[str, float]:
+    def evaluate(self, dataloader: torch.utils.data.DataLoader, n_epoch=None) -> Dict[str, float]:
         """Evaluate on dataset.
 
         Args:
@@ -214,9 +214,10 @@ class Trainer:
             else:
                 running_metrics = metrics
 
-        # saving generator output. TODO: remove this after the model debugged
-        fake_X = self.gan.g_forward(meta)
-        np.save(os.path.join(self.run_dir, f'g_output_{n_epoch}.npy'), fake_X.cpu().detach().numpy())
+        if n_epoch is not None:
+            # saving generator output. TODO: remove this after the model debugged
+            fake_X = self.gan.g_forward(meta)
+            np.save(os.path.join(self.run_dir, f'g_output_{n_epoch}.npy'), fake_X.cpu().detach().numpy())
 
         evaluated_metrics = {k: v/len(dataloader) for k, v in running_metrics.items()}
 
