@@ -1,5 +1,6 @@
 import torch
 import os
+import numpy as np
 
 from torch.nn.functional import l1_loss, mse_loss, binary_cross_entropy
 from torcheval.metrics.functional import multiclass_f1_score, multiclass_accuracy
@@ -23,9 +24,9 @@ class Trainer:
         val_size = len(train_dataset) - train_size
         train_dataset, val_dataset = torch.utils.data.random_split(train_dataset, [train_size, val_size])
         
-        self._train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
-        self._test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size)
-        self._val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size)
+        self._train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        self._test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+        self._val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
 
         self.n_clfs = len(clfs)
         n_metas = self._get_n_metas_from_dataset(train_dataset)
@@ -189,7 +190,7 @@ class Trainer:
 
         return epoch_metrics
     
-    def evaluate(self, dataloader: torch.utils.data.DataLoader) -> Dict[str, float]:
+    def evaluate(self, dataloader: torch.utils.data.DataLoader, n_epoch) -> Dict[str, float]:
         """Evaluate on dataset.
 
         Args:
@@ -212,6 +213,10 @@ class Trainer:
                 running_metrics = sum_dicts([running_metrics, metrics])
             else:
                 running_metrics = metrics
+
+        # saving generator output. TODO: remove this after the model debugged
+        fake_X = self.gan.g_forward(meta)
+        np.save(os.path.join(self.run_dir, f'g_output_{n_epoch}.npy'), fake_X.cpu().detach().numpy())
 
         evaluated_metrics = {k: v/len(dataloader) for k, v in running_metrics.items()}
 
@@ -240,7 +245,7 @@ class Trainer:
             self._verbose('Train', train_metrics)
 
             # validating
-            val_metrics = self.evaluate(self._val_dataloader)
+            val_metrics = self.evaluate(self._val_dataloader, n_epoch=i)
             self.history['Val'].append(val_metrics)
             self._verbose('Val', val_metrics)
 
