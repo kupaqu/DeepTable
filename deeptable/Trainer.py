@@ -75,9 +75,10 @@ class Trainer:
         pred_lambda, pred_label = self.gan.d_forward(X, y, meta)
         true_label = torch.ones(batch_size, 1, device=self._device)
 
-        real_lambda_loss = l1_loss(pred_lambda, lambda_)
+        # real_lambda_loss = l1_loss(pred_lambda, lambda_)
         real_label_loss = binary_cross_entropy(pred_label, true_label)
-        real_loss = real_lambda_loss + real_label_loss
+        # real_loss = real_lambda_loss + real_label_loss
+        real_loss = real_label_loss
 
         # train on generated
         fake_X = self.gan.g_forward(meta)
@@ -86,9 +87,10 @@ class Trainer:
         pred_lambda, pred_label = self.gan.d_forward(fake_X, y) # TODO: генерировать y
         fake_label = torch.zeros(batch_size, 1, device=self._device)
 
-        fake_lambda_loss = l1_loss(pred_lambda, fake_lambda)
+        # fake_lambda_loss = l1_loss(pred_lambda, fake_lambda)
         fake_label_loss = binary_cross_entropy(pred_label, fake_label)
-        fake_loss = fake_lambda_loss + fake_label_loss
+        # fake_loss = fake_lambda_loss + fake_label_loss
+        fake_loss = fake_label_loss
 
         # update weights
         loss = real_loss + fake_loss
